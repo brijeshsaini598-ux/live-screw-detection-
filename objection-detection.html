@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Screw Defect Detection</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #061426;
+            color: white;
+            min-height: 100vh;
+        }
+
+
+        /* ================= HEADER ================= */
+
+        .header {
+            background: #0b1f38;
+            padding: 22px 15px;
+            text-align: center;
+            border-bottom: 1px solid #1d3b5d;
+        }
+
+
+        .header h1 {
+            font-size: 30px;
+            margin-bottom: 7px;
+        }
+
+
+        .header p {
+            color: #9fb3c8;
+            font-size: 15px;
+        }
+
+
+        /* ================= MAIN CONTAINER ================= */
+
+        .container {
+            width: 95%;
+            max-width: 1150px;
+            margin: 25px auto;
+        }
+
+
+        /* ================= STATUS ================= */
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            background: #0b1f38;
+
+            padding: 15px 20px;
+
+            border-radius: 12px;
+
+            margin-bottom: 20px;
+
+            border: 1px solid #1d3b5d;
+        }
+
+
+        .status-item {
+            font-size: 15px;
+        }
+
+
+        .online {
+            color: #39d98a;
+            font-weight: bold;
+        }
+
+
+        .offline {
+            color: #ff5c5c;
+            font-weight: bold;
+        }
+
+
+        /* ================= MAIN GRID ================= */
+
+        .main {
+            display: grid;
+
+            grid-template-columns: 2fr 1fr;
+
+            gap: 20px;
+        }
+
+
+        /* ================= CARD ================= */
+
+        .card {
+            background: #0b1f38;
+
+            border: 1px solid #1d3b5d;
+
+            border-radius: 15px;
+
+            padding: 20px;
+        }
+
+
+        .card h2 {
+            margin-bottom: 15px;
+
+            font-size: 20px;
+        }
+
+
+        /* ================= CAMERA ================= */
+
+        .camera-box {
+            width: 100%;
+
+            background: black;
+
+            border-radius: 12px;
+
+            overflow: hidden;
+
+            position: relative;
+
+            min-height: 300px;
+        }
+
+
+        #video {
+            width: 100%;
+
+            height: auto;
+
+            display: block;
+
+            background: black;
+        }
+
+
+        /*
+           Overlay canvas camera ke exactly
+           upar rahega.
+        */
+
+        #overlay {
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            pointer-events: none;
+        }
+
+
+        /*
+           Ye canvas frame backend ko
+           bhejne ke liye use hota hai.
+        */
+
+        #canvas {
+            display: none;
+        }
+
+
+        /* ================= BUTTONS ================= */
+
+        .buttons {
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 15px;
+        }
+
+
+        button {
+            flex: 1;
+
+            padding: 13px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #145da0;
+
+            color: white;
+
+            font-size: 16px;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+
+        button:hover {
+            background: #1b78c5;
+        }
+
+
+        button.stop {
+            background: #8b2635;
+        }
+
+
+        button.stop:hover {
+            background: #ad3043;
+        }
+
+
+        /* ================= RESULT ================= */
+
+        .result {
+            text-align: center;
+
+            padding: 30px 15px;
+
+            border-radius: 12px;
+
+            background: #071a2e;
+
+            min-height: 260px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+        }
+
+
+        .result-title {
+            font-size: 30px;
+
+            font-weight: bold;
+
+            margin-bottom: 18px;
+        }
+
+
+        .good {
+            color: #39d98a;
+        }
+
+
+        .defective {
+            color: #ff5c5c;
+        }
+
+
+        .unknown {
+            color: #f0c75e;
+        }
+
+
+        .class-name {
+            font-size: 19px;
+
+            color: #c8d6e5;
+
+            margin-bottom: 12px;
+        }
+
+
+        .confidence {
+            font-size: 23px;
+
+            font-weight: bold;
+
+            margin-top: 5px;
+        }
+
+
+        .info {
+            margin-top: 18px;
+
+            color: #a9bdd1;
+
+            line-height: 1.8;
+        }
+
+
+        /* ================= INSTRUCTIONS ================= */
+
+        .instructions {
+            margin-top: 20px;
+
+            background: #0b1f38;
+
+            border: 1px solid #1d3b5d;
+
+            border-radius: 15px;
+
+            padding: 20px;
+        }
+
+
+        .instructions h2 {
+            margin-bottom: 12px;
+        }
+
+
+        .instructions li {
+            margin: 10px 0;
+
+            color: #c3d2e1;
+
+            margin-left: 20px;
+        }
+
+
+        /* ================= FOOTER ================= */
+
+        .footer {
+            text-align: center;
+
+            color: #7890a8;
+
+            font-size: 13px;
+
+            margin: 25px 0;
+        }
+
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 800px) {
+
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+
+            .status-bar {
+                flex-direction: column;
+
+                gap: 8px;
+
+                text-align: center;
+            }
+
+        }
+
+
+        @media (max-width: 500px) {
+
+            .container {
+                width: 92%;
+
+                margin-top: 15px;
+            }
+
+
+            .card {
+                padding: 15px;
+            }
+
+
+            .buttons {
+                flex-direction: column;
+            }
+
+
+            button {
+                width: 100%;
+            }
+
+
+            .result-title {
+                font-size: 25px;
+            }
+
+
+            .confidence {
+                font-size: 20px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ================================================= -->
+    <!-- HEADER -->
+    <!-- ================================================= -->
+
+    <div class="header">
+
+        <h1>🔩 Screw Defect Detection</h1>
+
+        <p>
+            AI-Based Live Screw Inspection System
+        </p>
+
+    </div>
+
+
+
+    <div class="container">
+
+
+        <!-- ================================================= -->
+        <!-- SERVER STATUS -->
+        <!-- ================================================= -->
+
+        <div class="status-bar">
+
+
+            <div class="status-item">
+
+                Server:
+
+                <span
+                    id="serverStatus"
+                    class="online">
+
+                    Checking...
+
+                </span>
+
+            </div>
+
+
+            <div class="status-item">
+
+                AI Model:
+
+                <span
+                    id="modelStatus"
+                    class="online">
+
+                    Checking...
+
+                </span>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- MAIN -->
+        <!-- ================================================= -->
+
+        <div class="main">
+
+
+            <!-- ================================================= -->
+            <!-- CAMERA CARD -->
+            <!-- ================================================= -->
+
+            <div class="card">
+
+
+                <h2>
+                    📷 Live Camera
+                </h2>
+
+
+                <div class="camera-box">
+
+
+                    <!-- CAMERA -->
+
+                    <video
+                        id="video"
+                        autoplay
+                        playsinline>
+                    </video>
+
+
+                    <!-- DETECTION BOX OVERLAY -->
+
+                    <canvas
+                        id="overlay">
+                    </canvas>
+
+
+                    <!-- FRAME SENT TO SERVER -->
+
+                    <canvas
+                        id="canvas">
+                    </canvas>
+
+
+                </div>
+
+
+
+                <!-- BUTTONS -->
+
+                <div class="buttons">
+
+
+                    <button
+                        id="startBtn"
+                        onclick="startCamera()">
+
+                        ▶ Start Camera
+
+                    </button>
+
+
+                    <button
+                        id="stopBtn"
+                        class="stop"
+                        onclick="stopCamera()">
+
+                        ■ Stop Camera
+
+                    </button>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ================================================= -->
+            <!-- RESULT CARD -->
+            <!-- ================================================= -->
+
+            <div class="card">
+
+
+                <h2>
+                    🔍 Inspection Result
+                </h2>
+
+
+                <div
+                    id="resultBox"
+                    class="result">
+
+
+                    <div
+                        id="resultTitle"
+                        class="result-title unknown">
+
+                        WAITING
+
+                    </div>
+
+
+                    <div
+                        id="className"
+                        class="class-name">
+
+                        Show a screw to the camera
+
+                    </div>
+
+
+                    <div
+                        id="confidence"
+                        class="confidence">
+
+                        --
+
+                    </div>
+
+
+                    <div class="info">
+
+
+                        <div>
+
+                            Detection:
+
+                            <span
+                                id="detectionStatus">
+
+                                Waiting
+
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- INSTRUCTIONS -->
+        <!-- ================================================= -->
+
+        <div class="instructions">
+
+
+            <h2>
+                📋 How to Use
+            </h2>
+
+
+            <ul>
+
+
+                <li>
+                    Click <b>Start Camera</b>.
+                </li>
+
+
+                <li>
+                    Hold the screw in front of
+                    the camera.
+                </li>
+
+
+                <li>
+                    Keep the screw clearly visible.
+                </li>
+
+
+                <li>
+                    AI will detect the screw
+                    automatically.
+                </li>
+
+
+                <li>
+                    <b>OK</b>
+                    → GOOD SCREW
+                </li>
+
+
+                <li>
+                    <b>scratch</b>,
+                    <b>thread</b> or
+                    <b>manipulated</b>
+                    → DEFECTIVE SCREW
+                </li>
+
+
+            </ul>
+
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- FOOTER -->
+        <!-- ================================================= -->
+
+        <div class="footer">
+
+            AI Screw Inspection System
+
+        </div>
+
+
+    </div>
+
+
+
+<script>
+
+
+    // =====================================================
+    // VARIABLES
+    // =====================================================
+
+
+    let stream = null;
+
+    let running = false;
+
+    let processing = false;
+
+
+    const video =
+        document.getElementById("video");
+
+
+    const canvas =
+        document.getElementById("canvas");
+
+
+    const overlay =
+        document.getElementById("overlay");
+
+
+    const overlayCtx =
+        overlay.getContext("2d");
+
+
+
+    // =====================================================
+    // CHECK SERVER
+    // =====================================================
+
+
+    async function checkServer() {
+
+
+        try {
+
+
+            const response =
+                await fetch("/status");
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Server error"
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            document.getElementById(
+                "serverStatus"
+            ).textContent = "ONLINE";
+
+
+            document.getElementById(
+                "serverStatus"
+            ).className = "online";
+
+
+            document.getElementById(
+                "modelStatus"
+            ).textContent = "LOADED";
+
+
+            document.getElementById(
+                "modelStatus"
+            ).className = "online";
+
+
+            console.log(
+                "Server:",
+                data
+            );
+
+
+        }
+
+
+        catch (error) {
+
+
+            document.getElementById(
+                "serverStatus"
+            ).textContent = "OFFLINE";
+
+
+            document.getElementById(
+                "serverStatus"
+            ).className = "offline";
+
+
+            document.getElementById(
+                "modelStatus"
+            ).textContent = "ERROR";
+
+
+            document.getElementById(
+                "modelStatus"
+            ).className = "offline";
+
+
+            console.error(
+                error
+            );
+
+        }
+
+    }
+
+
+
+    // =====================================================
+    // START CAMERA
+    // =====================================================
+
+
+    async function startCamera() {
+
+
+        try {
+
+
+            stream =
+                await navigator
+                    .mediaDevices
+                    .getUserMedia({
+
+                        video: {
+                            facingMode:
+                                "environment",
+
+                            width: {
+                                ideal: 1280
+                            },
+
+                            height: {
+                                ideal: 720
+                            }
+                        },
+
+                        audio: false
+
+                    });
+
+
+            video.srcObject =
+                stream;
+
+
+            running = true;
+
+
+            /*
+               Camera dimensions available
+               hone ke baad overlay set karo.
+            */
+
+            video.onloadedmetadata =
+                function () {
+
+                    overlay.width =
+                        video.videoWidth;
+
+                    overlay.height =
+                        video.videoHeight;
+
+                };
+
+
+            detectLoop();
+
+
+        }
+
+
+        catch (error) {
+
+
+            console.error(
+                "Camera error:",
+                error
+            );
+
+
+            alert(
+                "Camera access nahi mil raha.\n\n" +
+                error.message
+            );
+
+        }
+
+    }
+
+
+
+    // =====================================================
+    // STOP CAMERA
+    // =====================================================
+
+
+    function stopCamera() {
+
+
+        running = false;
+
+
+        processing = false;
+
+
+        if (stream) {
+
+
+            stream
+                .getTracks()
+                .forEach(
+                    track =>
+                        track.stop()
+                );
+
+
+            stream = null;
+
+        }
+
+
+        video.srcObject = null;
+
+
+        /*
+           Bounding box clear karo.
+        */
+
+        overlayCtx.clearRect(
+            0,
+            0,
+            overlay.width,
+            overlay.height
+        );
+
+
+        document.getElementById(
+            "resultTitle"
+        ).textContent = "WAITING";
+
+
+        document.getElementById(
+            "resultTitle"
+        ).className =
+            "result-title unknown";
+
+
+        document.getElementById(
+            "className"
+        ).textContent =
+            "Show a screw to the camera";
+
+
+        document.getElementById(
+            "confidence"
+        ).textContent = "--";
+
+
+        document.getElementById(
+            "detectionStatus"
+        ).textContent = "Waiting";
+
+    }
+
+
+
+    // =====================================================
+    // DETECTION LOOP
+    // =====================================================
+
+
+    async function detectLoop() {
+
+
+        if (!running) {
+
+            return;
+
+        }
+
+
+        if (
+            !processing &&
+            video.readyState >= 2 &&
+            video.videoWidth > 0
+        ) {
+
+
+            processing = true;
+
+
+            try {
+
+
+                // =========================================
+                // SET CANVAS SIZE
+                // =========================================
+
+
+                canvas.width =
+                    video.videoWidth;
+
+
+                canvas.height =
+                    video.videoHeight;
+
+
+                overlay.width =
+                    video.videoWidth;
+
+
+                overlay.height =
+                    video.videoHeight;
+
+
+
+                // =========================================
+                // COPY CAMERA FRAME
+                // =========================================
+
+
+                const ctx =
+                    canvas.getContext("2d");
+
+
+                ctx.drawImage(
+                    video,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+
+
+
+                // =========================================
+                // CONVERT FRAME TO JPEG
+                // =========================================
+
+
+                const blob =
+                    await new Promise(
+                        resolve => {
+
+                            canvas.toBlob(
+                                resolve,
+                                "image/jpeg",
+                                0.80
+                            );
+
+                        }
+                    );
+
+
+                if (!blob) {
+
+                    processing = false;
+
+                    setTimeout(
+                        detectLoop,
+                        200
+                    );
+
+                    return;
+
+                }
+
+
+
+                // =========================================
+                // FORM DATA
+                // =========================================
+
+
+                const formData =
+                    new FormData();
+
+
+                formData.append(
+                    "file",
+                    blob,
+                    "camera.jpg"
+                );
+
+
+
+                // =========================================
+                // SEND TO FASTAPI
+                // =========================================
+
+
+                const response =
+                    await fetch(
+                        "/compare",
+                        {
+
+                            method: "POST",
+
+                            body: formData
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+
+                console.log(
+                    "Detection:",
+                    data
+                );
+
+
+
+                // =========================================
+                // SHOW RESULT
+                // =========================================
+
+
+                showResult(data);
+
+
+            }
+
+
+            catch (error) {
+
+
+                console.error(
+                    "Detection error:",
+                    error
+                );
+
+
+            }
+
+
+            processing = false;
+
+        }
+
+
+        /*
+           Approximately 5 frames/second.
+        */
+
+        setTimeout(
+            detectLoop,
+            200
+        );
+
+    }
+
+
+
+    // =====================================================
+    // DRAW BOUNDING BOX
+    // =====================================================
+
+
+    function drawBoundingBox(data) {
+
+
+        /*
+           Previous box clear karo.
+        */
+
+        overlayCtx.clearRect(
+            0,
+            0,
+            overlay.width,
+            overlay.height
+        );
+
+
+        if (
+            !data.detected ||
+            !data.box
+        ) {
+
+            return;
+
+        }
+
+
+
+        const x1 =
+            data.box[0];
+
+
+        const y1 =
+            data.box[1];
+
+
+        const x2 =
+            data.box[2];
+
+
+        const y2 =
+            data.box[3];
+
+
+
+        const boxWidth =
+            x2 - x1;
+
+
+        const boxHeight =
+            y2 - y1;
+
+
+
+        // ===============================================
+        // BOX COLOR
+        // ===============================================
+
+
+        if (
+            data.status === "GOOD"
+        ) {
+
+            overlayCtx.strokeStyle =
+                "#39d98a";
+
+        }
+
+        else {
+
+            overlayCtx.strokeStyle =
+                "#ff5c5c";
+
+        }
+
+
+
+        // ===============================================
+        // BOX
+        // ===============================================
+
+
+        overlayCtx.lineWidth = 5;
+
+
+        overlayCtx.strokeRect(
+            x1,
+            y1,
+            boxWidth,
+            boxHeight
+        );
+
+
+
+        // ===============================================
+        // LABEL
+        // ===============================================
+
+
+        const label =
+            data.class +
+            "  " +
+            data.confidence +
+            "%";
+
+
+        overlayCtx.font =
+            "bold 20px Arial";
+
+
+        const textWidth =
+            overlayCtx.measureText(
+                label
+            ).width;
+
+
+        const labelHeight =
+            34;
+
+
+
+        let labelY =
+            y1 - labelHeight;
+
+
+        if (labelY < 0) {
+
+            labelY = y1;
+
+        }
+
+
+
+        // ===============================================
+        // LABEL BACKGROUND
+        // ===============================================
+
+
+        overlayCtx.fillStyle =
+            data.status === "GOOD"
+                ? "#39d98a"
+                : "#ff5c5c";
+
+
+        overlayCtx.fillRect(
+            x1,
+            labelY,
+            textWidth + 18,
+            labelHeight
+        );
+
+
+
+        // ===============================================
+        // LABEL TEXT
+        // ===============================================
+
+
+        overlayCtx.fillStyle =
+            "#061426";
+
+
+        overlayCtx.fillText(
+            label,
+            x1 + 9,
+            labelY + 23
+        );
+
+    }
+
+
+
+    // =====================================================
+    // SHOW RESULT
+    // =====================================================
+
+
+    function showResult(data) {
+
+
+        const title =
+            document.getElementById(
+                "resultTitle"
+            );
+
+
+        const className =
+            document.getElementById(
+                "className"
+            );
+
+
+        const confidence =
+            document.getElementById(
+                "confidence"
+            );
+
+
+        const detectionStatus =
+            document.getElementById(
+                "detectionStatus"
+            );
+
+
+
+        // ===============================================
+        // DRAW BOX
+        // ===============================================
+
+
+        drawBoundingBox(data);
+
+
+
+        // ===============================================
+        // NO SCREW
+        // ===============================================
+
+
+        if (!data.detected) {
+
+
+            title.textContent =
+                "NO SCREW DETECTED";
+
+
+            title.className =
+                "result-title unknown";
+
+
+            className.textContent =
+                "Screw camera ke saamne lao";
+
+
+            confidence.textContent =
+                "--";
+
+
+            detectionStatus.textContent =
+                "Not detected";
+
+
+            return;
+
+        }
+
+
+
+        // ===============================================
+        // GOOD SCREW
+        // ===============================================
+
+
+        if (
+            data.status === "GOOD"
+        ) {
+
+
+            title.textContent =
+                "✅ GOOD SCREW";
+
+
+            title.className =
+                "result-title good";
+
+        }
+
+
+
+        // ===============================================
+        // DEFECTIVE SCREW
+        // ===============================================
+
+
+        else {
+
+
+            title.textContent =
+                "❌ DEFECTIVE SCREW";
+
+
+            title.className =
+                "result-title defective";
+
+        }
+
+
+
+        // ===============================================
+        // DETAILS
+        // ===============================================
+
+
+        className.textContent =
+            "Detected: " +
+            data.class;
+
+
+        confidence.textContent =
+            "Confidence: " +
+            data.confidence +
+            "%";
+
+
+        detectionStatus.textContent =
+            "Screw detected";
+
+    }
+
+
+
+    // =====================================================
+    // INITIAL CHECK
+    // =====================================================
+
+
+    checkServer();
+
+
+</script>
+
+
+</body>
+
+</html>

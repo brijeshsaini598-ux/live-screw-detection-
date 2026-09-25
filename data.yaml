@@ -1,0 +1,8 @@
+names:
+  - OK
+  - manipulated
+  - scratch
+  - thread
+nc: 4
+train: C:\Users\LOQ\.vscode\Screw-Defect-Detection-4\train\images
+val: C:\Users\LOQ\.vscode\Screw-Defect-Detection-4\valid\images
